@@ -1,0 +1,29 @@
+---
+# Create directory for promtail configs
+- name: Create config dir
+  ansible.builtin.file:
+    path: "{{ promtail__config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+
+# Create config file
+- name: Copy the promtail config file
+  ansible.builtin.template:
+    src: etc/promtail/config.yml.j2
+    dest: "{{ promtail__config_file }}"
+    owner: root
+    group: root
+    mode: 0640
+  notify: Restart promtail
+
+# Create systemd units
+- name: Copy the promtail systemd service file
+  ansible.builtin.template:
+    src: etc/systemd/promtail.service.j2
+    dest: /etc/systemd/system/promtail.service
+    owner: root
+    group: root
+    mode: 0640
+  notify: Restart promtail

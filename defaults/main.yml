@@ -1,0 +1,72 @@
+---
+# @todo improvement: Add variables for logs
+#############################
+# Promtail options
+#############################
+
+# @var promtail__install:description: >
+# Weather of not to install promtail
+# Set to false if it's already installed and wanted to remove it
+# @end
+promtail__install: true
+
+# @var promtail__version:description: Default to latest version, pin version example 2.6.1
+promtail__version: "latest"
+
+# @var promtail__path:description: Default path for promtail
+promtail__path: /usr/local/bin/promtail
+
+# @var promtail__url:description: Promtail site mirror url
+promtail__url: "https://github.com/grafana/loki/releases/download/v{{ promtail__version }}/promtail-linux-amd64.zip"
+
+# @var promtail__config_dir:description: Promtail configurations directory
+promtail__config_dir: /etc/promtail
+
+# @var promtail__config_file:description: Promtail config file path
+promtail__config_file: "{{ promtail__config_dir }}/config.yml"
+
+# @var promtail__tmp_dir:description: TMP directory for download promtail
+promtail__tmp_dir: /tmp
+
+# @var promtail__config_file_sd_dir:description: Promtail file_sd directory
+promtail__config_file_sd_dir: "{{ promtail__config_dir }}/file_sd"
+
+# @var promtail__log_level:description: Promtail log level. One of: debug, info, warn, error
+promtail__log_level: warn
+
+# @var promtail__loki_server_url:description: Promtail loki server url
+promtail__loki_server_url: http://localhost:3100
+
+# @var promtail__config_server:description: Promtail server config, listen on - for metrics
+promtail__config_server:
+  http_listen_port: 9080
+
+# @var promtail__config_positions:description: Promtail positions config
+promtail__config_positions:
+  filename: "{{ promtail__config_dir }}/positions.yaml"
+
+# @var promtail__config_clients:description: Promtail clients config
+promtail__config_clients:
+  - url: "{{ promtail__loki_server_url }}/loki/api/v1/push"
+
+# @var promtail__scrape_configs:description: Promtail scrape configurations
+# @var promtail__scrape_configs:example: >
+# Example:
+# promtail__scrape_configs:
+# - job_name: syslog
+#   static_configs:
+#     - targets:
+#       - localhost
+#       labels:
+#         job: syslog
+#         host: "{{ ansible_host }}"
+#         __path__: /var/log/syslog
+# @end
+promtail__scrape_configs: []
+
+# @var promtail__url:description: Promtail target config
+# @var promtail__url:example: >
+#  promtail_target_config:
+#    sync_period: "10s"
+# @end
+promtail__target_config: {}

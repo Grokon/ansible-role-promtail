@@ -1,0 +1,57 @@
+---
+# tasks file for promtail
+
+- name: FAIL; if not systemd
+  ansible.builtin.assert:
+    that: ansible_service_mgr == "systemd"
+    msg: "This role currently only support systemd"
+
+# tasks file for preflihgt
+- name: Preflight tasks
+  ansible.builtin.import_tasks: preflight.yml
+  when: promtail__install
+  tags:
+    - promtail_install
+    - promtail_configure
+    - promtail_run
+
+# Delete current version if needed
+- name: Delete existing promtail version if it's different or not needed.
+  ansible.builtin.file:
+    path: "{{ promtail__path }}"
+    state: absent
+  become: true
+  when: >
+    not promtail__install or
+    (promtail_current_version.stdout is defined and
+     promtail__version not in promtail_current_version.stdout)
+
+- name: Install tasks
+  ansible.builtin.import_tasks: install.yml
+  become: true
+  when: >
+    promtail__install and
+    promtail_current_version.stdout is not defined or
+    (promtail_current_version.stdout is defined and
+     promtail__version not in promtail_current_version.stdout)
+  tags:
+    - promtail_install
+
+- name: Configure tasks
+  ansible.builtin.import_tasks: configure.yml
+  become: True
+  when: promtail__install
+  tags:
+    - promtail_configure
+
+# Check promtail service
+- name: Ensure promtail service is started and enabled
+  become: True
+  ansible.builtin.systemd:
+    daemon_reload: True
+    name: promtail
+    state: started
+    enabled: True
+  when: promtail__install
+  tags:
+    - promtail_run

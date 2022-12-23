@@ -1,0 +1,19 @@
+---
+- name: Converge
+  hosts: all
+
+  tasks:
+    - name: "Include grokon.promtail"
+      ansible.builtin.include_role:
+        name: "grokon.promtail"
+      vars:
+        promtail__version: "2.6.1" # version 2.7.0 & 2.7.1 is broken
+        promtail__scrape_configs:
+          - job_name: syslog
+            static_configs:
+              - targets:
+                  - localhost
+                labels:
+                  job: syslog
+                  host: "{{ ansible_host }}"
+                  __path__: /var/log/syslog

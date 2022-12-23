@@ -1,0 +1,41 @@
+default_stages: [commit]
+repos:
+  - repo: "https://github.com/pre-commit/pre-commit-hooks"
+    rev: "v4.3.0"
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: end-of-file-fixer
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      # - id: debug-statements
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: "https://github.com/ansible-community/ansible-lint.git"
+    rev: "v6.10.0"
+    hooks:
+      - id: ansible-lint
+        files: \.(ya?ml|j2)$
+
+  - repo: https://github.com/buluma/pre-commit
+    rev: v1.0.3
+    hooks:
+      - id: ansible_role_find_unused_variable
+      - id: ansible_role_find_empty_files
+      - id: ansible_role_find_empty_directories
+      - id: ansible_role_fix_readability
+      - id: ansible_role_find_undefined_handlers
+      - id: ansible_role_find_unquoted_values
+      - id: ansible_role_find_horizontal_when
+
+  - repo: "local"
+    hooks:
+      - id: ansible-doctor
+        name: "Ansible Doctor"
+        entry: "ansible-doctor"
+        pass_filenames: false
+        language: "system"
+        exclude: "molecule/|.github/|.pre-commit-config.yaml"

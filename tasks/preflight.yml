@@ -1,0 +1,35 @@
+---
+# Check current installed version
+- name: Gather currently installed promtail version (if any).
+  ansible.builtin.command: promtail --version
+  register: promtail_current_version
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+# Get last version from github
+- name: Get latest promtail version from github.
+  delegate_to: localhost
+  run_once: true
+  become: false
+  when:
+    - promtail__version == "latest"
+  block:
+    - name: Get latest release
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/grafana/loki/releases/latest
+        method: GET
+        return_content: true
+        status_code: 200
+        body_format: json
+        validate_certs: false
+        user: "{{ lookup('env', 'GH_USER') | default(omit) }}"
+        password: "{{ lookup('env', 'GH_TOKEN') | default(omit) }}"
+      no_log: "{{ not lookup('env', 'ANSIBLE_DEBUG') | bool }}"
+      register: latest_promtail_version
+      until: latest_promtail_version.status == 200
+      retries: 5
+
+    - name: "Set promtail version to {{ latest_promtail_version.json.tag_name[1:] }}"
+      ansible.builtin.set_fact:
+        promtail__version: "{{ latest_promtail_version.json.tag_name[1:] }}"

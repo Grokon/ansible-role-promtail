@@ -1,0 +1,56 @@
+---
+# tasks file for promtail
+
+# Get checksum for promtail
+- name: Get checksum for promtail
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: "Get checksum list"
+      ansible.builtin.set_fact:
+        __promtail_checksums: "{{ lookup('url', 'https://github.com/grafana/loki/releases/download/v' + promtail__version + '/SHA256SUMS', wantlist=True) | list }}"
+      #run_once: True
+    # Get checksum
+    - name: "Get checksum for amd64 architecture"
+      ansible.builtin.set_fact:
+        promtail_checksum: "{{ item.split(' ')[0] }}"
+      with_items: "{{ __promtail_checksums }}"
+      when:
+        - "('promtail-linux-' + 'amd64' + '.zip') in item"
+
+# Get latest promtail binary
+- name: Get latest promtail binary
+  block:
+    - name: Download promtail binary to local folder
+      become: false
+      ansible.builtin.get_url:
+        url: "https://github.com/grafana/loki/releases/download/v{{ promtail__version }}/promtail-linux-amd64.zip"
+        dest: "{{ promtail__tmp_dir }}/promtail-{{ promtail__version }}.linux-amd64.tar.gz"
+        checksum: "sha256:{{ promtail_checksum }}"
+        mode: 0644
+      register: _download_binary
+      until: _download_binary is succeeded
+      retries: 5
+      delay: 2
+      delegate_to: localhost
+      check_mode: false
+
+    - name: Unpack promtail binary
+      become: false
+      ansible.builtin.unarchive:
+        src: "{{ promtail__tmp_dir }}/promtail-{{ promtail__version }}.linux-amd64.tar.gz"
+        dest: "{{ promtail__tmp_dir }}"
+        #creates: "/tmp/promtail-{{ promtail_version }}.linux-amd64/promtail"
+      delegate_to: localhost
+      check_mode: false
+
+    - name: Propagate promtail binaries
+      ansible.builtin.copy:
+        src: "{{ promtail__tmp_dir }}/promtail-linux-amd64"
+        dest: "{{ promtail__path }}"
+        mode: 0755
+        owner: root
+        group: root
+      notify: Restart promtail
+      when: not ansible_check_mode
+  #when: promtail_binary_local_dir | length == 0

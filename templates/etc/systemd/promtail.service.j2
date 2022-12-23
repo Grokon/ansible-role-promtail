@@ -1,0 +1,19 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description = Promtail service
+Documentation = https://grafana.com/docs/loki/latest/clients/promtail/
+After = network-online.target
+
+[Service]
+Type = simple
+Environment = "GOMAXPROCS={{ ansible_processor_vcpus | default(ansible_processor_count) }}"
+Restart = always
+RestartSec = 30
+TimeoutSec = 15
+ExecReload = /bin/kill -HUP $MAINPID
+ExecStart = {{ promtail__path }} -config.file={{ promtail__config_file }} -log.level={{ promtail__log_level }} -client.external-labels node_name={{ ansible_hostname }}
+SyslogIdentifier=promtail
+
+[Install]
+WantedBy = multi-user.target

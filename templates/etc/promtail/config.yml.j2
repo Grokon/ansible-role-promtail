@@ -1,0 +1,81 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+# https://github.com/grafana/loki/blob/master/docs/clients/promtail/configuration.md
+
+server:
+  {{ promtail__config_server | to_nice_yaml(indent=2) | indent(2, False) }}
+
+positions:
+  {{ promtail__config_positions | to_nice_yaml(indent=2) | indent(2, False) }}
+
+clients:
+  {{ promtail__config_clients | to_nice_yaml(indent=2) | indent(2, False) }}
+
+scrape_configs:
+{% if promtail__scrape_configs != [] %}
+  {{ promtail__scrape_configs | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif %}
+
+{% if promtail___nginx_logs is defined %}
+  - job_name: nginx-error
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        host: {{ ansible_hostname }}
+        job: nginx
+        __path__: /var/log/nginx/error.log
+
+  - job_name: nginx-access
+    pipeline_stages:
+    # - replace:
+    #     expression: '(?:[0-9]{1,3}\.){3}([0-9]{1,3})'
+    #     replace: '***'
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: nginx_access_log
+        host: {{ ansible_hostname }}
+        agent: promtail
+        __path__: /var/log/nginx/*access.log
+{% endif %}
+
+{% if docker__edition is defined %}
+  - job_name: containers
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        host: {{ ansible_hostname }}
+        job: containerlogs
+        __path__: /var/lib/docker/containers/*/*log
+
+    pipeline_stages:
+    - json:
+        expressions:
+          stream: stream
+          attrs: attrs
+          tag: attrs.tag
+          message: message
+    - docker:
+
+    - regex:
+        expression: (?P<container_name>(?:[^|]*[^|]))
+        source: "tag"
+
+    - labels:
+        tag:
+        stream:
+        #image_name:
+        container_name:
+        #image_id:
+        container_id:
+        #message:
+{% endif %}
+
+
+{% if promtail__target_config != {} %}
+target_config:
+  {{ promtail__target_config | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif %}

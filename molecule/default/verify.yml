@@ -1,0 +1,26 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Example assertion
+      ansible.builtin.assert:
+        that: true
+
+    - name: Check promtail version
+      ansible.builtin.command:
+        cmd: promtail -version
+      register: promtail_test_one
+      changed_when: promtail_test_one.rc != 0
+      failed_when:
+        - '"promtail, version" not in promtail_test_one.stdout'
+
+    - name: Check promtail systemd service
+      ansible.builtin.command:
+        cmd: systemctl status promtail
+      register: promtail_test_two
+      changed_when: promtail_test_two.rc != 0
+      failed_when:
+        - '"Active: active (running)" not in promtail_test_two.stdout'
