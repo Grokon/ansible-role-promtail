@@ -9,6 +9,7 @@ on:
       - testing
     paths-ignore:
       - "**/README.md"
+      - "**/HEADER.md"
       - "**/CHANGELOG.md"
 
 concurrency:
