@@ -10,8 +10,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v3
+      - name: 'Checkout git repo'
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
 
       - name: Create Release
         id: create_release
@@ -19,6 +22,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
 
       - name: galaxy
-        uses: buluma/galaxy-action@v10.30.23
+        uses: ansible-actions/ansible-galaxy-action@v1.2.0
         with:
           galaxy_api_key: ${{ secrets.galaxy_api_key }}
