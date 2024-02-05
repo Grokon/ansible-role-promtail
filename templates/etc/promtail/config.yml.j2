@@ -22,21 +22,16 @@ scrape_configs:
     - targets:
         - localhost
       labels:
-        host: {{ ansible_hostname }}
-        job: nginx
+        job: nginx_error_log
         __path__: /var/log/nginx/error.log
 
   - job_name: nginx-access
     pipeline_stages:
-    # - replace:
-    #     expression: '(?:[0-9]{1,3}\.){3}([0-9]{1,3})'
-    #     replace: '***'
     static_configs:
     - targets:
         - localhost
       labels:
         job: nginx_access_log
-        host: {{ ansible_hostname }}
         agent: promtail
         __path__: /var/log/nginx/*access.log
 {% endif %}
@@ -47,7 +42,6 @@ scrape_configs:
     - targets:
         - localhost
       labels:
-        host: {{ ansible_hostname }}
         job: containerlogs
         __path__: /var/lib/docker/containers/*/*log
 

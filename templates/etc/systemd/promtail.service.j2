@@ -12,7 +12,7 @@ Restart = always
 RestartSec = 30
 TimeoutSec = 15
 ExecReload = /bin/kill -HUP $MAINPID
-ExecStart = {{ promtail__path }} -config.file={{ promtail__config_file }} -log.level={{ promtail__log_level }} -client.external-labels node_name={{ ansible_hostname }}
+ExecStart = {{ promtail__path }} -config.file={{ promtail__config_file }} -log.level={{ promtail__log_level }} -client.external-labels instance={{ ansible_hostname }}
 SyslogIdentifier=promtail
 
 [Install]
