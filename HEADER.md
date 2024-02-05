@@ -12,7 +12,7 @@
   roles:
     - grokon.promtail
   vars:
-    promtail__loki_server_domain: my_loki_instance
+    promtail__loki_server_url: my_loki_instance
     promtail__scrape_configs:
       - job_name: syslog
         static_configs:
